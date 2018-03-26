@@ -365,9 +365,27 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
         stagerOut = copy.deepcopy(stager.options)
 
+        # If output to file
         if ('OutFile' in stagerOut) and (stagerOut['OutFile']['Value'] != ''):
-            # if the output was intended for a file, return the base64 encoded text
-            stagerOut['Output'] = base64.b64encode(stager.generate())
+            #  prep vars
+            stagerOut['Output'] = stager.generate()
+            savePath = stagerOut['OutFile']['Value']
+
+            # make the base directory if it doesn't exist
+            if not os.path.exists(os.path.dirname(savePath)) and os.path.dirname(savePath) != '':
+                os.makedirs(os.path.dirname(savePath))
+
+            # if we need to write binary output for a .dll
+            if ".dll" in savePath:
+                out_file = open(savePath, 'wb')
+                out_file.write(bytearray(stagerOut['Output']))
+                out_file.close()
+            else:
+                # otherwise normal output
+                out_file = open(savePath, 'w')
+                out_file.write(stagerOut['Output'])
+                out_file.close()
+
         else:
             # otherwise return the text of the stager generation
             stagerOut['Output'] = stager.generate()
